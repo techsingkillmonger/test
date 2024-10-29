@@ -1,6 +1,8 @@
 import sys
 import subprocess
 import importlib.util
+import os
+import tempfile
 
 # Function to install packages
 def install(package):
@@ -15,7 +17,6 @@ if spec is None:
 
 from Crypto.Cipher import AES
 import hashlib
-import os
 
 def decrypt_file(input_file, output_file, password, salt_hex, iv_hex):
     salt = bytes.fromhex(salt_hex)
@@ -37,12 +38,29 @@ def decrypt_file(input_file, output_file, password, salt_hex, iv_hex):
     with open(output_file, 'wb') as f:
         f.write(plaintext)
 
+def read_credentials(credential_file):
+    with open(credential_file, 'r') as f:
+        lines = f.readlines()
+        return lines[0].strip(), lines[1].strip()  # return password and salt
+
 if __name__ == '__main__':
-    # Arguments passed from Pro Micro: input file, output file, password, salt, iv
+    # Arguments passed from Pro Micro: input file, output file
     input_file = sys.argv[1]
     output_file = sys.argv[2]
-    password = sys.argv[3]
-    salt = sys.argv[4]
-    iv = sys.argv[5]
 
-    decrypt_file(input_file, output_file, password, salt, iv)
+    # Create a temporary file to store the password and salt
+    with tempfile.NamedTemporaryFile(delete=True) as temp_file:
+        temp_file.write(b'YourPassword\n')  # Replace with actual password
+        temp_file.write(b'a726d3cd829c72204ae1add61be23ffa\n')  # Replace with actual salt
+        temp_file.flush()  # Make sure the file is written
+
+        password, salt = read_credentials(temp_file.name)
+
+        # IVs for both files
+        iv_bat = "c835c64d5b9d758fd29823f7ee855801"  # Example IV for .bat
+        iv_vbs = "d990fa53364de877296723a207f91ac5"  # Example IV for .vbs
+
+        if input_file.endswith('bat.enc'):
+            decrypt_file(input_file, output_file, password, salt, iv_bat)
+        elif input_file.endswith('vbs.enc'):
+            decrypt_file(input_file, output_file, password, salt, iv_vbs)
