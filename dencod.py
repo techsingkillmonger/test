@@ -8,7 +8,7 @@ import os
 import sys
 
 def parse_args():
-    """Parse command-line arguments without revealing what each argument does."""
+    """"""
     parser = argparse.ArgumentParser(description="Decrypt an encrypted file.", add_help=False)
     parser.add_argument("arg1", help="First argument (, )")
     parser.add_argument("arg2", help="Second argument (, )")
