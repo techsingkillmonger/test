@@ -46,7 +46,7 @@ def main():
         salt = base64.b64decode(args.arg2)
         key = base64.b64decode(args.arg3)
     except Exception as e:
-        print("Error decoding Base64 salt or key.")
+        print("Error 49")
         sys.exit(1)
 
     password = args.arg1.encode()
@@ -66,7 +66,7 @@ def main():
         sys.exit(1)
 
     if key != derived_key:
-        print("Error: The provided key does not match the derived key.")
+        print("Error: 69.")
         sys.exit(1)
 
     decrypt_file(args.arg4, key)
