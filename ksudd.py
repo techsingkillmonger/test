@@ -22,7 +22,6 @@ def parse_args():
 
 
 def decrypt_file(filename, key):
-    """Decrypt the given file with the provided key."""
     with open(filename, "rb") as f:
         encrypted_data = f.read()
 
