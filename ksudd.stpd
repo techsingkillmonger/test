@@ -6,51 +6,37 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 import os
 import sys
-
 def parse_args():
     """"""
     parser = argparse.ArgumentParser(description="techsings", add_help=False)
     parser.add_argument("arg1", help="3 argument (, )")
     parser.add_argument("arg2", help="2 argument (, )")
     parser.add_argument("arg3", help="4 argument (, )")
-    parser.add_argument("arg4", help="5 argument (, )")
-    
+    parser.add_argument("arg4", help="5 argument (, )")    
     try:
         return parser.parse_args()
     except SystemExit:
         sys.exit(1)  
-
-
 def decrypt_file(filename, key):
     with open(filename, "rb") as f:
         encrypted_data = f.read()
-
     iv = encrypted_data[:16]  
     ciphertext = encrypted_data[16:]  
-
     cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
     decryptor = cipher.decryptor()
-
     decrypted_data = decryptor.update(ciphertext) + decryptor.finalize()
-
     decrypted_filename = "decrypted_" + filename
     with open(decrypted_filename, "wb") as f:
         f.write(decrypted_data)
-
-
 def main():
     args = parse_args()
-
-    
     try:
         salt = base64.b64decode(args.arg2)
         key = base64.b64decode(args.arg3)
     except Exception as e:
         print("Error 49")
         sys.exit(1)
-
     password = args.arg1.encode()
-
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=32,
@@ -70,7 +56,5 @@ def main():
         sys.exit(1)
 
     decrypt_file(args.arg4, key)
-
-
 if __name__ == "__main__":
     main()
