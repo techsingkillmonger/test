@@ -38,8 +38,6 @@ def decrypt_file(filename, key):
     with open(decrypted_filename, "wb") as f:
         f.write(decrypted_data)
 
-    print(f"{filename} has been decrypted successfully as {decrypted_filename}!")
-
 
 def main():
     args = parse_args()
