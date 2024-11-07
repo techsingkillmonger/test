@@ -9,7 +9,7 @@ import sys
 
 def parse_args():
     """"""
-    parser = argparse.ArgumentParser(description="Decrypt an encrypted file.", add_help=False)
+    parser = argparse.ArgumentParser(description="techsings", add_help=False)
     parser.add_argument("arg1", help="3 argument (, )")
     parser.add_argument("arg2", help="2 argument (, )")
     parser.add_argument("arg3", help="4 argument (, )")
